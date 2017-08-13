@@ -40,7 +40,7 @@ exports.create = (req, res) => {
     let creators = req.body.creators;
     let rewards = req.body.rewards;
 
-    User.getOne(user_id, (result) => {
+    User.getBy('user_id', user_id, (result) => {
         if (result.length > 0) {
             Project.create(title, subtitle, description, imgUri, target, (result) => {
                 let data = result[0];
@@ -64,7 +64,7 @@ exports.update = (req, res) => {
     let token = req.body.token || req.query.token || req.headers['x-access-token'];
 
 
-    if (open === null) {
+    if (open == null) {
         res.json({400 : "malformed request"});
 
     } else {
@@ -74,7 +74,7 @@ exports.update = (req, res) => {
                     res.json(result); //**** re-check this later *****
                 });
 
-            } else res.json({404 : "Not found - nonexistent project ID"});
+            } else res.json({404 : "Nonexistent project ID"});
         });
     }
 };

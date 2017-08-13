@@ -9,8 +9,6 @@ exports.list = (req, res) => {
     let project_id = req.params.id;
 
     Project.getOne(project_id, (result) => {
-        console.log(result);
-
         if (result.length > 0) {
             Reward.getAll(project_id, (result) => {
                 res.json(result.map((row) => {

@@ -13,7 +13,7 @@ exports.getOne = (user_id, done) => {
 };
 
 exports.getBy = (field, value, done) => {
-    db.get().query(`SELECT * FROM User WHERE ? = ?`, [field, value], (err, rows) => {
+    db.get().query(`SELECT * FROM User WHERE ${field} = ?`, [value], (err, rows) => {
 
         if (err) return done(err);
 
@@ -24,10 +24,17 @@ exports.getBy = (field, value, done) => {
 exports.create = (user_id, username, location, email, password, done) => {
     let values = [user_id, username, location, email, password];
 
-    db.get().query("INSERT INTO User values (?)", [values], (err, rows) => {
-        if (err) return done(err);
+    this.getBy('username', username, (result) => {
+        if (result.length > 0) { // i.e username already exists
+            return done({400 : "Username already in use"});
 
-        return done(rows);
+        } else {
+            db.get().query("INSERT INTO User values ?", [values], (err, rows) => {
+                if (err) return done(err);
+
+                return done(rows);
+            });
+        }
     });
 };
 

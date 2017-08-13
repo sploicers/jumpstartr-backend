@@ -37,7 +37,7 @@ exports.login = (req, res) => {
 
     User.getBy('username', username, (result) => {
         if (result.length > 0) {
-
+            User.session()
 
 
 

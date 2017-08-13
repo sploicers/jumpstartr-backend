@@ -13,7 +13,7 @@ db.connect((err) => {
         process.exit(1);
 
     } else {
-        app.listen(3000, () => {
+        app.listen(4941, () => {
             console.log(`Listening on port: 3000`);
         });
     }
