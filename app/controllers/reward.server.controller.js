@@ -11,7 +11,7 @@ exports.list = (req, res) => {
     Project.getOne(project_id, (result) => {
         if (result.length > 0) {
             Reward.getAll(project_id, (result) => {
-                res.json(result.map((row) => {
+                res.status(200).json(result.map((row) => {
                     return {
                         "id" : row.reward_id,
                         "amount" : row.amount,
@@ -20,7 +20,7 @@ exports.list = (req, res) => {
                 }));
             });
 
-        } else res.json({404 : "Not found - nonexistent project ID"});
+        } else res.status(404).send('Not found - nonexistent project ID');
     });
 };
 

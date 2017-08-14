@@ -53,12 +53,12 @@ create Table if not exists PaymentMethod(
 	foreign key (user_id) references User(user_id)
 );
 
-create Table if not exists LoginSession(
+create Table if not exists Session(
 	user_id int,
-	logged_in bool default true,
-	primary key (user_id),
-	foreign key (user_id) references User(user_id)
-);
+	auth_token varchar
+
+
+)
 
 
 insert into User(username, user_location, email, password) values 

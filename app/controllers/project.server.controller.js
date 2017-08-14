@@ -8,7 +8,7 @@ const Reward = require('../models/reward.server.model');
 
 exports.list = (req, res) => {
     Project.getAll((result) => {
-        res.json(result.map((row) => {
+        res.status(200).json(result.map((row) => {
             return {
                 "id" : row.project_id,
                 "title" : row.title,
@@ -24,9 +24,9 @@ exports.read = (req, res) => {
     Project.getOne(project_id, (result) => {
         if (result.length > 0) {
             //console.log(result);
-            res.json(result);
+            res.status(200).json(result);
 
-        } else res.json({404 : "Nonexistent project ID"});
+        } else res.status(404).send("Nonexistent project ID");
     });
 };
 
@@ -43,18 +43,17 @@ exports.create = (req, res) => {
     User.getBy('user_id', user_id, (result) => {
         if (result.length > 0) {
             Project.create(title, subtitle, description, imgUri, target, (result) => {
-                let data = result[0];
+                let data = result[0]; //check this
 
                 for (let reward of rewards) {
                     Reward.create(reward.id, project_id, reward.amount, reward.description, (result) => {
-
-
-
+                        console.log(result);
+                        res.json(result);
                     });
                 }
             });
 
-        } else res.json({400 : "Unauthorized - create account to create project"});
+        } else res.status(400).send("Unauthorized - create account to create project");
     });
 };
 
@@ -65,16 +64,16 @@ exports.update = (req, res) => {
 
 
     if (open == null) {
-        res.json({400 : "malformed request"});
+        res.status(400).send("malformed request");
 
     } else {
         Project.getOne(project_id, (result) => {
             if (result.length > 0) {
                 Project.alter(project_id, open, (result) => {
-                    res.json(result); //**** re-check this later *****
+                    res.status(200).json(result); //**** re-check this later *****
                 });
 
-            } else res.json({404 : "Nonexistent project ID"});
+            } else res.status(404).send("Nonexistent project ID");
         });
     }
 };

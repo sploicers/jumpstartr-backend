@@ -26,13 +26,19 @@ exports.create = (user_id, username, location, email, password, done) => {
 
     this.getBy('username', username, (result) => {
         if (result.length > 0) { // i.e username already exists
-            return done({400 : "Username already in use"});
+            return done({
+                'code' : 400,
+                'message' : 'Username already in use'
+            });
 
         } else {
             db.get().query("INSERT INTO User values ?", [values], (err, rows) => {
                 if (err) return done(err);
 
-                return done(rows);
+                return done({
+                    'code' : 200,
+                    'message' : 'OK'
+                });
             });
         }
     });
