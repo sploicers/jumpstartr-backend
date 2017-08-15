@@ -2,27 +2,25 @@
 const Reward = require('../models/reward.server.model');
 const Project = require('../models/project.server.model');
 
-const jwt = require('jsonwebtoken');
-
-
 exports.list = (req, res) => {
     let project_id = req.params.id;
 
-    Project.getOne(project_id, (result) => {
+    Project.getOne(project_id, result => {
         if (result.length > 0) {
-            Reward.getAll(project_id, (result) => {
-                res.status(200).json(result.map((row) => {
+            Reward.getAll(project_id, rewards => {
+                res.status(200).json(rewards.map(reward => {
                     return {
-                        "id" : row.reward_id,
-                        "amount" : row.amount,
-                        "description" : row.description,
+                        "id" : reward['reward_id'],
+                        "amount" : reward['amount'],
+                        "description" : reward['description'],
                     };
                 }));
             });
 
-        } else res.status(404).send('Not found - nonexistent project ID');
+        } else res.sendStatus(404);
     });
 };
+
 
 exports.update = (req, res) => {
     return null;

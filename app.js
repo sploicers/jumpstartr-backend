@@ -13,8 +13,15 @@ db.connect((err) => {
         process.exit(1);
 
     } else {
-        app.listen(4941, () => {
-            console.log(`Listening on port: 3000`);
+        let port = process.env.SENG365_PORT || 3000;
+
+        app.listen(port, () => {
+            console.log(`Listening on ${port}`);
+        });
+
+        app.use((req, res, done) => {
+            res.sendStatus(404);
+            done();
         });
     }
 });

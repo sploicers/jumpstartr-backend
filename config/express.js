@@ -12,6 +12,7 @@ module.exports = () => {
         extended : true
     }));
 
+    require('../app/routes/home.server.routes.js')(app);
     require('../app/routes/user.server.routes.js')(app);
     require('../app/routes/reward.server.routes.js')(app);
     require('../app/routes/project.server.routes.js')(app);

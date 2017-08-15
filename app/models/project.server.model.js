@@ -9,10 +9,27 @@ exports.getAll = (done) => {
 
         return done(rows);
     });
-};
+}
+
 
 exports.getOne = (project_id, done) => {
-    db.get().query(`SELECT * FROM Project WHERE project_id = ${project_id}`, (err, rows) => {
+    db.get().query("SELECT * FROM Project WHERE project_id = ?", [project_id], (err, rows) => {
+        if (err) return done(err);
+
+        return done(rows);
+    });
+};
+
+exports.getCreators = (project_id, done) => {
+    db.get().query("SELECT * FROM ProjectOwner WHERE project_id = ?", [project_id], (err, rows) => {
+        if (err) return done(err);
+
+        return done(rows);
+    });
+};
+
+exports.getBackers = (project_id, done) => {
+    db.get().query("SELECT * FROM ProjectBacker WHERE project_id = ?", [project_id], (err, rows) => {
         if (err) return done(err);
 
         return done(rows);
@@ -23,11 +40,11 @@ exports.getOne = (project_id, done) => {
 exports.create = (title, subtitle, description, imgUri, target, done) => {
     let values = [title, subtitle, description, imgUri, target];
 
-    if(values.some(value => {value === null})) {
+    if(values.includes(undefined)) {
         return done({400 : "Malformed project data"});
 
     } else {
-        db.get().query("INSERT INTO Project(title, subtitle, description, imgUri, target) values ?", [values.join()], (err, rows) => {
+        db.get().query("INSERT INTO Project(title, subtitle, description, imgUri, target) values ?", [[values]], (err, rows) => {
             if (err) return done(err);
 
             return done(rows);
@@ -44,9 +61,6 @@ exports.alter = (project_id, open, done) => {
         return done(rows);
     });
 };
-
-
-
 
 
 exports.remove = (project_id, done) => {

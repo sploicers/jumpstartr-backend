@@ -20,5 +20,4 @@ exports.isAuthorized = (user_id, token) => {
     });
 };
 
-exports.key = new Buffer('7468697320697320612074c3a97374', 'hex');
 

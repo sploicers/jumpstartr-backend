@@ -8,53 +8,146 @@ const Reward = require('../models/reward.server.model');
 
 exports.list = (req, res) => {
     Project.getAll((result) => {
-        res.status(200).json(result.map((row) => {
-            return {
-                "id" : row.project_id,
-                "title" : row.title,
-                "subtitle" : row.subtitle,
-            };
-        }));
+        if (result["ERROR"]) {
+            console.log(result);
+
+        } else {
+            res.status(200).json(result.map((row) => {
+                return {
+                    "id" : row["project_id"],
+                    "title" : row["title"],
+                    "subtitle" : row["subtitle"],
+                };
+            }));
+        }
     });
 };
 
 exports.read = (req, res) => {
     let project_id = req.params.id;
 
-    Project.getOne(project_id, (result) => {
-        if (result.length > 0) {
-            //console.log(result);
-            res.status(200).json(result);
+    Project.getOne(project_id, projects => {
+        if (projects.length > 0) { //i.e if there exists a project with the specified id
+            let project = projects[0];
 
-        } else res.status(404).send("Nonexistent project ID");
+            let result = {
+                "project" : {
+                    "id" : project['project_id'],
+                    "creationDate" : project['created_on'],
+                    "data" : {
+                        "title" : project['title'],
+                        "subtitle" : project['subtitle'],
+                        "description" : project['description'],
+                        "imageUri" : project['imageUri'],
+                        "target" : project['target']
+                    },
+                    "progress" : {
+                        "target" : project['target'],
+                        "currentPledged" : project['total_raised'],
+                    }
+                }
+            };
+
+            Project.getCreators(project_id, (creators) => {
+                let user_ids = creators.map(creator => {
+                    return creator["user_id"];
+                });
+
+                User.getBy('user_id', user_ids, (users) => {
+                    result["project"]["backers"] = users.map(user => {
+                        return {
+                            "name" : user["username"]
+                        };
+                    });
+
+                    result["project"]["data"]["creators"] = users.map(user => {
+                        return {
+                            "id" : user["user_id"],
+                            "name" : user["username"]
+                        };
+                    });
+
+                    Reward.getAll(project_id, rewards => {
+                        result["project"]["data"]["rewards"] = rewards.map(reward => {
+                            return {
+                                "id" : reward["reward_id"],
+                                "amount" : reward["amount"],
+                                "description" : reward["description"]
+                            };
+                        });
+
+                        Project.getBackers(project_id, (backers) => {
+                            result["project"]["backers"] = backers.filter(backer => !backer['anonymous']).map(backer => {
+                                return {
+                                    "name" : result["project"]["backers"]["name"],
+                                    "amount" : backer["amount"]
+                                };
+
+                            }); result["project"]["progress"]["numberOfBackers"] += backers.length;
+
+                            res.status(200).json(result);
+                        });
+                    });
+                });
+            });
+
+        } else res.sendStatus(404);
     });
 };
 
 exports.create = (req, res) => {
-    let title = req.body.title;
-    let subtitle = req.body.subtitle;
-    let description = req.body.description;
-    let imgUri = req.body.imgUri;
-    let target = req.body.target;
+    let data = req['body'];
 
-    let creators = req.body.creators;
-    let rewards = req.body.rewards;
+    let title = data['title'];
+    let subtitle = data['subtitle'];
+    let description = data['description'];
+    let imgUri = data['imageUri'];
+    let target = data['target'];
 
-    User.getBy('user_id', user_id, (result) => {
-        if (result.length > 0) {
-            Project.create(title, subtitle, description, imgUri, target, (result) => {
-                let data = result[0]; //check this
+    let creators = data['creators'];
+    let rewards = data['rewards'];
 
-                for (let reward of rewards) {
-                    Reward.create(reward.id, project_id, reward.amount, reward.description, (result) => {
+    //field validation
+    if (!([creators, rewards].includes(undefined))) {
+        //pull all of the fields out of creator and reward to check they aren't undefined
+        let creatorData = creators.map(creator => {
+            return [creator['id'], creator['name']];
+
+        }).reduce((a, b) => a.concat(b), []);
+
+        let rewardData = rewards.map(reward => {
+            return [reward['id'], reward['amount'], reward['description']];
+
+        }).reduce((a, b) => a.concat(b), []);
+
+        let expected = [title, subtitle, description, imgUri, target].concat(creatorData).concat(rewardData);
+
+
+        if (expected.includes(undefined)) {
+            res.sendStatus(400);
+
+        } else {
+            let creator_ids = creators.map(creator => creator['id']);
+
+            User.getBy('user_id', creator_ids, result => {
+                if (result.length === creator_ids.length) { // all specified creators actually exist in the database
+                    Project.create(title, subtitle, description, imgUri, target, result => {
                         console.log(result);
-                        res.json(result);
-                    });
-                }
-            });
 
-        } else res.status(400).send("Unauthorized - create account to create project");
-    });
+                        let project_id = result['insertId'];
+                        let rewardData = rewards.map(reward => [reward['project_id'], reward['amount'], reward['description']]);
+
+
+                        Reward.create(rewardData, result => {
+                            res.json(result);
+                        });
+                    });
+
+                } else res.sendStatus(400);
+            });
+        }
+
+    } else res.sendStatus(400);
 };
 
 exports.update = (req, res) => {
@@ -67,9 +160,9 @@ exports.update = (req, res) => {
         res.status(400).send("malformed request");
 
     } else {
-        Project.getOne(project_id, (result) => {
+        Project.getOne(project_id, result => {
             if (result.length > 0) {
-                Project.alter(project_id, open, (result) => {
+                Project.alter(project_id, open, result => {
                     res.status(200).json(result); //**** re-check this later *****
                 });
 
@@ -81,7 +174,7 @@ exports.update = (req, res) => {
 exports.delete = (req, res) => {
     let project_id = req.params.id;
 
-    Project.remove(project_id, (result) => {
+    Project.remove(project_id, result => {
         res.json(result);
     });
 };
@@ -93,7 +186,7 @@ exports.setImg = (req, res) => {
 };
 
 exports.getImg = (req, res) => {
-    Project.getImg((result) => {
+    Project.getImg(result => {
         res.json(result);
     });
 };
@@ -104,7 +197,7 @@ exports.give = (req, res) => {
     let anonymous = req.body['anonymous'];
     let auth_token = req.body['card']['authToken'];
 
-    Project.pledge(project_id, pledge_amount, anonymous, auth_token, (result) => {
+    Project.pledge(project_id, pledge_amount, anonymous, auth_token, result => {
         res.json(result);
     });
 };

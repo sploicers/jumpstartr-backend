@@ -1,17 +1,20 @@
-create Table if not exists User(
+drop database if exists assignment;
+create database assignment;
+
+/*create Table if not exists User(
 	user_id int auto_increment,
 	username varchar(20) not null,
-	user_location varchar(20) not null,
+	user_location varchar(20) not null, //remove not null later
 	email varchar(50) not null,
 	password varchar(20) not null,
 	primary key (user_id)
 );
-
-create Table if not exists Project(
+/*
+create Table if not exists Project( //add an imageUri later
 	project_id int auto_increment,
 	title varchar(100) not null,
-	subtitle varchar(100),
-	description varchar(200),
+	subtitle varchar(100), //make not null
+	description varchar(200), //make not null
 	target int not null,
 	total_raised int default 0,
 	funded bool default false,
@@ -19,7 +22,7 @@ create Table if not exists Project(
 	primary key (project_id)
 );
 
-schcreate Table if not exists ProjectReward(
+create Table if not exists ProjectReward(
 	reward_id int auto_increment,
 	project_id int,
 	amount int not null,
@@ -41,7 +44,8 @@ create Table if not exists ProjectBacker(
 	user_id int,
 	anonymous bool default false,
 	amount int not null,
-	primary key (project_id, user_id),
+	pledge_time timestamp default now(),
+	primary key (project_id, user_id, pledge_time),
 	foreign key (project_id) references Project(project_id),
 	foreign key (user_id) references User(user_id)
 );
@@ -55,10 +59,12 @@ create Table if not exists PaymentMethod(
 
 create Table if not exists Session(
 	user_id int,
-	auth_token varchar
+	auth_token varchar,
+	primary_key (user_id, auth_token),
+	foreign_key
 
 
-)
+) */
 
 
 insert into User(username, user_location, email, password) values 
@@ -68,11 +74,12 @@ insert into User(username, user_location, email, password) values
 	("Jenny", "Dunedin", "jenjen55@live.com", "d5hp!@wg4gff4"),
 	("Ivan", "Moscow", "youngrussiansfordemocracy@gmail.com", "m0th3rl4nd");
 
+/*
 insert into Project(title, subtitle, description, target) values
 	("Make The Motherland Great Again", "Donate to Young Russians For Democracy!", null, 500000),
-	("Help get me to Africa", "Heading to Africa for volunteer work, help sponsor me :)", null, 800000);  
+	("Help get me to Africa", "Heading to Africa for volunteer work, help sponsor me :)", null, 800000);  */
 	
-insert into ProjectOwner values (1, 5), (2, 2);
+/*insert into ProjectOwner values (1, 5), (2, 2);*/
 
 
 

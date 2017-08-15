@@ -1,6 +1,4 @@
-/**
- * Created by jwt52 on 10/08/17.
- */
+//Created by jwt52 on 10/08/17.
 const projects = require('../controllers/project.server.controller');
 
 module.exports = (app) => {
