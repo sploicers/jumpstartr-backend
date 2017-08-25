@@ -1,110 +1,63 @@
 //Created by jwt52 on 10/08/17.
 const User = require('../models/user.server.model');
+const auth = require('../controllers/auth.server.controller');
+const url = require('url').URL;
 
 exports.create = (req, res) => {
     let data = req['body'];
     let userData = data['user'];
 
-    if (userData != null) {
-        let user_id = userData['id'];
-        let username = userData['username'];
-        let location = userData['location'];
-        let email = userData['email'];
-        let password = data['password'];
+    let username = userData['username'];
+    let location = userData['location'];
+    let email = userData['email'];
+    let password = data['password'];
 
-        if ([user_id, username, location, email, password].includes(undefined)) {
-           res.sendStatus(400);
-
-        } else {
-            User.create(username, location, email, password, statusCode => {
-                res.sendStatus(statusCode);
-            });
-        }
-
-    } else res.sendStatus(400);
-};
-
-exports.login = (req, res) => {
-    let username = req.body['username'];
-    let password = req.body['password'];
-
-    User.getBy('username', username, result => {
-        if (result.length > 0) {
-            let user = result[0];
-            let user_id = user['user_id'];
-
-            if (user['password'] == password) {
-                let token = (user_id + username).toString().split("").reverse().join("");
-
-                User.session(user_id, token, result => {
-                    if (result) {
-                        res.status(200).json({
-
-
-                        });
-                    }
-                });
-
-            } else res.status(400).send("Invalid username/password supplied");
-
-        } else res.sendStatus(404);
+    User.create(username, location, email, password, statusCode => {
+        res.sendStatus(statusCode);
     });
 };
 
-exports.logout = (req, res) => {
-    return null;
-};
-
-
-exports.validate = (req, res, done) => {
-    User.session()
-
-
-
-
-};
-
-exports.isLoggedIn = (req, res, done) => {
-    let user_id = req.body.user_id;
-
-    if (authenticator.isAuthorized(user_id, req.get('X-Authorization'))) {
-        done();
-
-    } else return res.status(401).json({message: 'Unauthorized user!'});
-};
 
 exports.read = (req, res) => {
-    let user_id = req.params.id;
+    let user = req['userData'];
+    delete user['password'];
 
-    if (isNaN(user_id)) {
-        res.status(400).send("Invalid id supplied");
-
-    } else {
-        User.getOne(Number(user_id), (result) => {
-            if (result.length > 0) {
-                let user = result[0];
-                delete user['password'];
-                res.status(200).json(result);
-
-            } else res.status(404).send("User not found");
-        });
-    }
+    res.status(200).json(user);
 };
 
-exports.update = (req, res) => {
 
+exports.update = (req, res) => {
+    let user_id = req.params.id;
+    let user = req.body;
+
+    let username = user['user']['username'];
+    let location = user['user']['location'];
+    let email = user['user']['email'];
+    let password = user['password'];
+
+    let values = [username, location, email, password, user_id];
+
+    User.getBy('username', username, rows => {
+        if (rows.length > 0) {
+            res.status(400).send("Malformed request - username already in use");
+
+        } else {
+            User.modify(values, result => {
+                console.log(result);
+                res.sendStatus(200);
+            });
+        }
+    });
 };
 
 exports.delete = (req, res) => {
-    return null;
+   let user_id = req.params.id;
+
+   User.delete(user_id, result => {
+       auth.logout(req, res, result => {
+           res.status(200).send("User deleted");
+       });
+   });
 };
-
-
-const validCredentials = (username, password) => {
-    "use strict";
-
-
-
-}
 
 

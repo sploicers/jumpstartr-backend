@@ -3,12 +3,14 @@
  */
 const db = require('./config/db');
 const express = require('./config/express');
-
+const importer = require('node-mysql-importer');
 const app = express();
+
+
 
 //connect to MYSQL on start
 db.connect((err) => {
-    if (err) {
+    if (err === true) {
         console.log('Unable to connect to MYSQL.');
         process.exit(1);
 
@@ -25,4 +27,6 @@ db.connect((err) => {
         });
     }
 });
+
+
 

@@ -5,24 +5,24 @@ const Project = require('../models/project.server.model');
 exports.list = (req, res) => {
     let project_id = req.params.id;
 
-    Project.getOne(project_id, result => {
-        if (result.length > 0) {
-            Reward.getAll(project_id, rewards => {
-                res.status(200).json(rewards.map(reward => {
-                    return {
-                        "id" : reward['reward_id'],
-                        "amount" : reward['amount'],
-                        "description" : reward['description'],
-                    };
-                }));
-            });
-
-        } else res.sendStatus(404);
+    Reward.getAll(project_id, rewards => {
+        res.status(200).json(rewards.map(reward => {
+            return {
+                "id" : reward['reward_id'],
+                "amount" : reward['amount'],
+                "description" : reward['description'],
+            };
+        }));
     });
 };
 
 
 exports.update = (req, res) => {
-    return null;
+    let rewards = req.body;
+    let project_id = req.params.id;
+
+    Reward.alter(rewards, project_id, result => {
+        res.sendStatus(200);
+    });
 };
 
